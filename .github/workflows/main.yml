@@ -27,6 +27,9 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Accept Android SDK Licenses
+        run: yes "y" | flutter doctor --android-licenses
+
       - name: Create Native Android Platform Files
         run: |
           rm -rf android
@@ -42,8 +45,8 @@ jobs:
       - name: Get Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Maximum Verbose Diagnostics
-        run: flutter build apk --debug --no-tree-shake-icons --verbose
+      - name: Build Debug APK
+        run: flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
