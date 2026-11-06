@@ -27,32 +27,10 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Accept Android SDK Licenses
-        run: yes "y" | flutter doctor --android-licenses
-
-      - name: Create Native Android Platform Files
-        run: |
-          rm -rf android
-          flutter create . --org com.sultanpharma --project-name sultan_pharma --platforms=android
-
-      - name: Force Gradle Wrapper Compatibility
-        run: |
-          cd android
-          gradle wrapper --gradle-version 8.5
-          chmod +x gradlew
-          cd ..
-
-      - name: Configure Android Properties
-        run: |
-          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
-          if [ -f "android/app/build.gradle" ]; then
-            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
-          fi
-
-      - name: Get Pub Dependencies
+      - name: Verify Project Structure & Pub Get
         run: flutter pub get
 
-      - name: Build Debug APK Successfully
+      - name: Build Debug APK Directly
         run: flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
@@ -60,5 +38,4 @@ jobs:
         with:
           name: Sultan-Pharma-Debug-APK
           path: build/app/outputs/flutter-apk/app-debug.apk
-
           
