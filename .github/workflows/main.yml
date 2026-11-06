@@ -42,10 +42,10 @@ jobs:
             sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
           fi
 
-      - name: Get Pub Dependencies
+      - name: Install Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK
+      - name: Build Debug APK Cleanly
         run: flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
