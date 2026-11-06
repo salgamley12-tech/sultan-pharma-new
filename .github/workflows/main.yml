@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Sovereign Complete Master)
+name: Build Flutter APK (Sultan Pharma - Sovereign Absolute Master)
 
 on:
   push:
@@ -30,29 +30,40 @@ jobs:
       - name: Accept Android SDK Licenses
         run: yes "y" | flutter doctor --android-licenses
 
-      - name: Verify and Repair Project Structure
+      - name: Initialize and Verify Android Platform Structure
         run: |
-          # التأكد من وجود ملفات المصدر الأساسية لفلاتر، وإذا كانت فارغة يتم توفير الهيكلية القياسية
+          # 1. التأكد من وجود الهيكلية الأساسية لمشروع فلاتر
           if [ ! -f "lib/main.dart" ]; then
-            echo "Warning: lib/main.dart missing. Initializing standard structure..."
+            echo "Initializing standard Flutter project structure..."
             flutter create . --org com.sultanpharma --project-name sultan_pharma
-          else
-            echo "Project source structure verified successfully."
           fi
+
+          # 2. توليد منصة أندرويد تلقائياً إذا لم تكن موجودة لضمان وجود المجلدات
+          if [ ! -d "android" ]; then
+            echo "Generating Android platform directory safely..."
+            flutter create . --org com.sultanpharma --project-name sultan_pharma --platforms=android
+          else
+            echo "Android directory exists."
+          fi
+
+          # 3. إنشاء مسارات الـ wrapper مسبقاً لمنع أي خطأ فقدان مسار
+          mkdir -p android/gradle/wrapper
 
       - name: Ultimate Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Namespace & MultiDex)
         run: |
           # 1. ترقية Gradle Wrapper إلى 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
-          if [ -f "$GRADLE_PROP" ]; then
-            sed -i 's|distributionUrl=.*|distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip|g' "$GRADLE_PROP"
-          fi
+          echo "distributionBase=GRADLE_USER_HOME" > "$GRADLE_PROP"
+          echo "distributionPath=wrapper/dists" >> "$GRADLE_PROP"
+          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip" >> "$GRADLE_PROP"
+          echo "zipStoreBase=GRADLE_USER_HOME" >> "$GRADLE_PROP"
+          echo "zipStorePath=wrapper/dists" >> "$GRADLE_PROP"
 
           # 2. ربط مسارات الـ SDK والـ Flutter
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة ومنع التوازي
+          # 3. إعدادات الذاكرة ومنع التوازي لتجنب تصادم العمال
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "org.gradle.workers.max=1" >> android/gradle.properties
@@ -61,8 +72,7 @@ jobs:
 
           # 4. حقن التكوينات الجذرية في android/build.gradle
           ROOT_GRADLE="android/build.gradle"
-          if [ -f "$ROOT_GRADLE" ]; then
-            cat << 'EOF' > "$ROOT_GRADLE"
+          cat << 'EOF' > "$ROOT_GRADLE"
           buildscript {
               ext.kotlin_version = '1.9.22'
               repositories {
@@ -102,7 +112,6 @@ jobs:
               delete rootProject.buildDir
           }
           EOF
-          fi
 
           # 5. ضبط Namespace, SDK 34, وتفعيل MultiDex في android/app/build.gradle
           BUILD_GRADLE="android/app/build.gradle"
