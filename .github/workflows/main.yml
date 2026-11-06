@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Single Threaded Sovereign)
+name: Build Flutter APK (Sultan Pharma - Dual Gradle Sovereign)
 
 on:
   push:
@@ -45,9 +45,9 @@ jobs:
             echo "Android directory already exists."
           fi
 
-      - name: Hard-Patch Gradle 8.4, Namespace, SDK & Single-Thread Config
+      - name: Comprehensive Dual-Gradle & Android Hard-Patch
         run: |
-          # 1. ترقية Gradle Wrapper إلى 8.4
+          # 1. ترقية Gradle Wrapper إلى 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
           if [ -f "$GRADLE_PROP" ]; then
             sed -i 's|distributionUrl=.*|distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip|g' "$GRADLE_PROP"
@@ -57,14 +57,47 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة وتعطيل التوازي لمنع انهيار Worker Threads
+          # 3. إعدادات الذاكرة ومنع التوازي لتجنب انهيار عمال الـ Gradle
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "org.gradle.workers.max=1" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 4. حقن الـ Namespace ورفع النسخ إلى 34 لضمان توافقية الحزم
+          # 4. ترقيع ملف الجذر android/build.gradle لضمان توافق المستودعات و AGP 8.1.0
+          ROOT_GRADLE="android/build.gradle"
+          if [ -f "$ROOT_GRADLE" ]; then
+            cat << 'EOF' > "$ROOT_GRADLE"
+          allprojects {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.buildDir = '../build'
+          subprojects {
+              project.buildDir = "${rootProject.buildDir}/${project.name}"
+          }
+          subprojects {
+              afterEvaluate { project ->
+                  if (project.hasProperty('android')) {
+                      project.android {
+                          if (namespace == null) {
+                              namespace project.group
+                          }
+                      }
+                  }
+              }
+          }
+
+          tasks.register("clean", Delete) {
+              delete rootProject.buildDir
+          }
+          EOF
+          fi
+
+          # 5. ترقيع ملف التطبيق android/app/build.gradle (Namespace, SDK 34, MultiDex)
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
             if ! grep -q "namespace" "$BUILD_GRADLE"; then
@@ -73,15 +106,18 @@ jobs:
             sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' "$BUILD_GRADLE"
             sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' "$BUILD_GRADLE"
             sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/g' "$BUILD_GRADLE"
+            
+            if ! grep -q "multiDexEnabled true" "$BUILD_GRADLE"; then
+              sed -i '/defaultConfig {/a \        multiDexEnabled true' "$BUILD_GRADLE"
+            fi
           fi
 
       - name: Install Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Single-Thread Isolation
+      - name: Build Debug APK with Master Precision
         run: |
-          # بناء التطبيق بمسار أحادي مستقر، وفي حال الفشل يتم طباعة السجل المعزول للـ Gradle
-          flutter build apk --debug --no-tree-shake-icons || (echo "=== ISOLATED BUILD FAILED, RUNNING GRADLE DIAGNOSTIC ===" && cd android && ./gradlew assembleDebug --no-daemon --stacktrace && exit 1)
+          flutter build apk --debug --no-tree-shake-icons || (echo "=== BUILD FAILED, RUNNING FULL DIAGNOSTIC ===" && cd android && ./gradlew assembleDebug --no-daemon --stacktrace --info && exit 1)
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
