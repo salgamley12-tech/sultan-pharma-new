@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Architectural Master Sovereign)
+name: Build Flutter APK (Sultan Pharma - Final Clean Pipeline)
 
 on:
   push:
@@ -46,9 +46,9 @@ jobs:
 
           mkdir -p android/gradle/wrapper
 
-      - name: Architectural Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Java 17 & Namespace)
+      - name: Apply Permanent Sovereign Hard-Patches
         run: |
-          # 1. ترقية Gradle Wrapper إلى 8.4 المتوافق مع Java 17
+          # 1. تثبيت Gradle 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
           echo "distributionBase=GRADLE_USER_HOME" > "$GRADLE_PROP"
           echo "distributionPath=wrapper/dists" >> "$GRADLE_PROP"
@@ -60,14 +60,14 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة وإيقاف التوازي لتفادي اصطدام العمال
+          # 3. إعدادات الذاكرة ومنع التوازي
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "org.gradle.workers.max=1" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 4. حقن التكوينات الجذرية في android/build.gradle
+          # 4. ترقيع ملف الجذر android/build.gradle بـ AGP 8.1.1 و Kotlin 1.9.22
           ROOT_GRADLE="android/build.gradle"
           cat << 'EOF' > "$ROOT_GRADLE"
           buildscript {
@@ -110,7 +110,7 @@ jobs:
           }
           EOF
 
-          # 5. ضبط Namespace، SDK 34، تفعيل MultiDex، وتوافق Java 17 في android/app/build.gradle
+          # 5. ترقيع ملف التطبيق android/app/build.gradle (Namespace, SDK 34, MultiDex, Java 17)
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
             if ! grep -q "namespace" "$BUILD_GRADLE"; then
@@ -129,22 +129,11 @@ jobs:
             fi
           fi
 
-      - name: Get Pub Dependencies Cleanly
-        run: |
-          flutter pub get --no-example
+      - name: Get Pub Dependencies
+        run: flutter pub get
 
-      - name: Architectural Direct Gradle Build (AssembleDebug with Full Stacktrace)
-        run: |
-          # تنفيذ تجميع مباشر مع تفعيل الـ Stacktrace الإجباري لكشف العلة بدقة هندسية مطلقة
-          cd android
-          chmod +x gradlew
-          ./gradlew clean assembleDebug --no-daemon --stacktrace --refresh-dependencies
-
-      - name: Locate and Prepare APK Artifact
-        run: |
-          mkdir -p build/app/outputs/flutter-apk/
-          find . -name "app-debug.apk" -exec cp {} build/app/outputs/flutter-apk/app-debug.apk \;
-          ls -la build/app/outputs/flutter-apk/
+      - name: Build Debug APK (Standard Flutter Pipeline)
+        run: flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
