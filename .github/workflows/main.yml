@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Java 17 Sovereign Master)
+name: Build Flutter APK (Sultan Pharma - Comprehensive Master Sovereign)
 
 on:
   push:
@@ -46,7 +46,7 @@ jobs:
 
           mkdir -p android/gradle/wrapper
 
-      - name: Ultimate Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Java 17 Compatibility & Namespace)
+      - name: Ultimate Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Java 17 & Namespace)
         run: |
           # 1. ترقية Gradle Wrapper إلى 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
@@ -60,7 +60,7 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة ومنع التوازي لتجنب تصادم عمال الـ Gradle
+          # 3. إعدادات الذاكرة ومنع التوازي لتجنب انهيار العمال
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "org.gradle.workers.max=1" >> android/gradle.properties
@@ -124,7 +124,6 @@ jobs:
               sed -i '/defaultConfig {/a \        multiDexEnabled true' "$BUILD_GRADLE"
             fi
 
-            # حقن compileOptions و kotlinOptions لضمان توافق Java 17 بصرامة
             if ! grep -q "compileOptions" "$BUILD_GRADLE"; then
               sed -i '/android {/a \    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17\n    }\n\n    kotlinOptions {\n        jvmTarget = "17"\n    }' "$BUILD_GRADLE"
             fi
@@ -135,9 +134,10 @@ jobs:
           flutter clean
           flutter pub get
 
-      - name: Build Debug APK Successfully
+      - name: Build Debug APK with Sovereign Stacktrace Diagnostic
         run: |
-          flutter build apk --debug --no-tree-shake-icons
+          # محاولة البناء مع تتبع دقيق للـ Stacktrace لضمان كشف أو تجاوز أي عائق نهائي
+          flutter build apk --debug --no-tree-shake-icons || (echo "=== CAPTURING FINAL GRADLE EXCEPTION ===" && cd android && ./gradlew assembleDebug --no-daemon --stacktrace && exit 1)
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
