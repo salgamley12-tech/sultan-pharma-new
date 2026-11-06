@@ -27,14 +27,10 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Initialize Flutter Android Structure
-        run: |
-          flutter create . --org com.sultanpharma --project-name sultan_pharma --platforms=android
-
-      - name: Install Dependencies
+      - name: Check Project and Get Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK
+      - name: Build Debug APK Robustly
         run: flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
