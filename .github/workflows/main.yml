@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma Elite - Diagnostic Master)
+name: Build Flutter APK (Sultan Pharma - Dynamic Sovereign Master)
 
 on:
   push:
@@ -30,14 +30,22 @@ jobs:
       - name: Accept Android SDK Licenses
         run: yes "y" | flutter doctor --android-licenses
 
-      - name: Initialize Clean Android Platform
+      - name: Extract Project Name & Initialize Android Platform
         run: |
-          rm -rf android
-          flutter create . --org com.sultanpharma --project-name sultan_pharma --platforms=android
+          # استخراج اسم المشروع ديناميكياً من pubspec.yaml لقطع دابر أي تضارب
+          PROJECT_NAME=$(grep '^name:' pubspec.yaml | awk '{print $2}' | tr -d '\r')
+          if [ -z "$PROJECT_NAME" ]; then
+            PROJECT_NAME="sultan_pharma"
+          fi
+          echo "Detected Project Name: $PROJECT_NAME"
+
+          # تنظيف المنصات القديمة وتوليد منصة أندرويد متطابقة تماماً مع اسم المشروع
+          rm -rf android ios linux macos windows web
+          flutter create . --org com.sultanpharma --project-name $PROJECT_NAME --platforms=android
 
       - name: Inject Master SDK & Gradle Properties
         run: |
-          # 1. الربط المزدوج الحاسم لـ Gradle و Flutter SDK
+          # 1. الربط المزدوج الحاسم لـ Gradle و Flutter SDK لمنع ضياع المسارات
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
@@ -54,7 +62,7 @@ jobs:
       - name: Install Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Full Verbose Logs
+      - name: Build Debug APK with Full Diagnostics
         run: flutter build apk --debug --no-tree-shake-icons -v
 
       - name: Upload APK Artifact
