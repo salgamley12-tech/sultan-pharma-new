@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Sovereign Absolute Master)
+name: Build Flutter APK (Sultan Pharma - Java 17 Sovereign Master)
 
 on:
   push:
@@ -32,13 +32,11 @@ jobs:
 
       - name: Initialize and Verify Android Platform Structure
         run: |
-          # 1. التأكد من وجود الهيكلية الأساسية لمشروع فلاتر
           if [ ! -f "lib/main.dart" ]; then
             echo "Initializing standard Flutter project structure..."
             flutter create . --org com.sultanpharma --project-name sultan_pharma
           fi
 
-          # 2. توليد منصة أندرويد تلقائياً إذا لم تكن موجودة لضمان وجود المجلدات
           if [ ! -d "android" ]; then
             echo "Generating Android platform directory safely..."
             flutter create . --org com.sultanpharma --project-name sultan_pharma --platforms=android
@@ -46,10 +44,9 @@ jobs:
             echo "Android directory exists."
           fi
 
-          # 3. إنشاء مسارات الـ wrapper مسبقاً لمنع أي خطأ فقدان مسار
           mkdir -p android/gradle/wrapper
 
-      - name: Ultimate Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Namespace & MultiDex)
+      - name: Ultimate Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Java 17 Compatibility & Namespace)
         run: |
           # 1. ترقية Gradle Wrapper إلى 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
@@ -63,7 +60,7 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة ومنع التوازي لتجنب تصادم العمال
+          # 3. إعدادات الذاكرة ومنع التوازي لتجنب تصادم عمال الـ Gradle
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "org.gradle.workers.max=1" >> android/gradle.properties
@@ -113,7 +110,7 @@ jobs:
           }
           EOF
 
-          # 5. ضبط Namespace, SDK 34, وتفعيل MultiDex في android/app/build.gradle
+          # 5. ضبط Namespace، SDK 34، تفعيل MultiDex، وتوافق Java 17 في android/app/build.gradle
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
             if ! grep -q "namespace" "$BUILD_GRADLE"; then
@@ -125,6 +122,11 @@ jobs:
             
             if ! grep -q "multiDexEnabled true" "$BUILD_GRADLE"; then
               sed -i '/defaultConfig {/a \        multiDexEnabled true' "$BUILD_GRADLE"
+            fi
+
+            # حقن compileOptions و kotlinOptions لضمان توافق Java 17 بصرامة
+            if ! grep -q "compileOptions" "$BUILD_GRADLE"; then
+              sed -i '/android {/a \    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17\n    }\n\n    kotlinOptions {\n        jvmTarget = "17"\n    }' "$BUILD_GRADLE"
             fi
           fi
 
