@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Dynamic Sovereign Master)
+name: Build Flutter APK (Sultan Pharma - Absolute Sovereign)
 
 on:
   push:
@@ -28,33 +28,39 @@ jobs:
           cache: true
 
       - name: Accept Android SDK Licenses
-        run: yes "y" | flutter doctor --android-licenses
+        yes "y" | flutter doctor --android-licenses
 
       - name: Extract Project Name & Initialize Android Platform
         run: |
-          # استخراج اسم المشروع ديناميكياً من pubspec.yaml لقطع دابر أي تضارب
+          # استخراج اسم المشروع ديناميكياً من pubspec.yaml
           PROJECT_NAME=$(grep '^name:' pubspec.yaml | awk '{print $2}' | tr -d '\r')
           if [ -z "$PROJECT_NAME" ]; then
             PROJECT_NAME="sultan_pharma"
           fi
           echo "Detected Project Name: $PROJECT_NAME"
 
-          # تنظيف المنصات القديمة وتوليد منصة أندرويد متطابقة تماماً مع اسم المشروع
+          # تنظيف وتوليد المنصة نظيفة
           rm -rf android ios linux macos windows web
           flutter create . --org com.sultanpharma --project-name $PROJECT_NAME --platforms=android
 
-      - name: Inject Master SDK & Gradle Properties
+      - name: Hard-patch Gradle, AGP & SDK Properties for Java 17 Compatibility
         run: |
-          # 1. الربط المزدوج الحاسم لـ Gradle و Flutter SDK لمنع ضياع المسارات
+          # 1. ترقية Gradle Wrapper إلى الإصدار 8.4
+          GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
+          if [ -f "$GRADLE_PROP" ]; then
+            sed -i 's|distributionUrl=.*|distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip|g' "$GRADLE_PROP"
+          fi
+
+          # 2. الربط المزدوج الحاسم لـ مسار فلاتر ومسار الـ Android SDK
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 2. تحسينات الذاكرة ومنع انهيار الـ JVM Daemon
+          # 3. تحسينات الذاكرة ومنع انهيار الـ JVM Daemon
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 3. ضبط الحد الأدنى للإصدار minSdkVersion إلى 21
+          # 4. ضبط الحد الأدنى للإصدار minSdkVersion إلى 21
           if [ -f "android/app/build.gradle" ]; then
             sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
           fi
@@ -62,8 +68,8 @@ jobs:
       - name: Install Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Full Diagnostics
-        run: flutter build apk --debug --no-tree-shake-icons -v
+      - name: Build Debug APK Successfully
+        run: flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
