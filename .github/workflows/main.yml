@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Reverse Engineering Master)
+name: Build Flutter APK (Sultan Pharma - Single Threaded Sovereign)
 
 on:
   push:
@@ -45,9 +45,9 @@ jobs:
             echo "Android directory already exists."
           fi
 
-      - name: Hard-Patch Gradle 8.4, Namespace, SDK & JVM Args
+      - name: Hard-Patch Gradle 8.4, Namespace, SDK & Single-Thread Config
         run: |
-          # 1. ترقية Gradle Wrapper إلى 8.4 المتوافق مع Java 17
+          # 1. ترقية Gradle Wrapper إلى 8.4
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
           if [ -f "$GRADLE_PROP" ]; then
             sed -i 's|distributionUrl=.*|distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip|g' "$GRADLE_PROP"
@@ -57,8 +57,10 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. تخصيص الذاكرة ومنع انهيار JVM
+          # 3. إعدادات الذاكرة وتعطيل التوازي لمنع انهيار Worker Threads
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
+          echo "org.gradle.parallel=false" >> android/gradle.properties
+          echo "org.gradle.workers.max=1" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
@@ -76,16 +78,14 @@ jobs:
       - name: Install Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Reverse Engineering Diagnostic Fallback
+      - name: Build Debug APK with Single-Thread Isolation
         run: |
-          # محاولة بناء الـ APK عبر فلاتر، وإذا فشلت يتم استدعاء الـ Gradle مباشرة مع طباعة الـ Stacktrace كاملاً
-          flutter build apk --debug --no-tree-shake-icons || (echo "=== FLUTTER BUILD FAILED, RUNNING DIRECT GRADLE DIAGNOSTICS ===" && cd android && ./gradlew assembleDebug --stacktrace --info && exit 1)
+          # بناء التطبيق بمسار أحادي مستقر، وفي حال الفشل يتم طباعة السجل المعزول للـ Gradle
+          flutter build apk --debug --no-tree-shake-icons || (echo "=== ISOLATED BUILD FAILED, RUNNING GRADLE DIAGNOSTIC ===" && cd android && ./gradlew assembleDebug --no-daemon --stacktrace && exit 1)
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Sultan-Pharma-Debug-APK
           path: build/app/outputs/flutter-apk/app-debug.apk
-
-
           
