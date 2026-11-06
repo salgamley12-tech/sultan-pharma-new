@@ -27,20 +27,24 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Create Native Android Platform Files
+      - name: Clean and Prepare Environment
         run: |
+          rm -rf android
           flutter create . --org com.sultanpharma --project-name sultan_pharma --platforms=android
 
-      - name: Make Gradle Wrapper Executable
+      - name: Fix Gradle Permissions
         run: |
           if [ -f "android/gradlew" ]; then
             chmod +x android/gradlew
           fi
 
-      - name: Install Dependencies
+      - name: Get Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK
+      - name: Clean Flutter Build Cache
+        run: flutter clean
+
+      - name: Build Debug APK Cleanly
         run: flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
