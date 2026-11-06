@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Namespace Sovereign Master)
+name: Build Flutter APK (Sultan Pharma - Ultimate Sovereign Master)
 
 on:
   push:
@@ -45,9 +45,9 @@ jobs:
             echo "Android directory already exists."
           fi
 
-      - name: Hard-patch Gradle, AGP, Namespace & SDK Properties
+      - name: Expert Hard-Patch (Gradle 8.4, Namespace, MultiDex & SDK 34)
         run: |
-          # 1. ترقية Gradle Wrapper إلى الإصدار 8.4 المتوافق كلياً مع Java 17
+          # 1. ترقية Gradle Wrapper إلى الإصدار 8.4
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
           if [ -f "$GRADLE_PROP" ]; then
             sed -i 's|distributionUrl=.*|distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip|g' "$GRADLE_PROP"
@@ -62,19 +62,33 @@ jobs:
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 4. حقن الـ namespace وضبط minSdkVersion في android/app/build.gradle
+          # 4. حقن الـ Namespace، رفع SDK إلى 34، وتفعيل MultiDex في android/app/build.gradle
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
             if ! grep -q "namespace" "$BUILD_GRADLE"; then
               sed -i '/android {/a \    namespace "com.sultanpharma"' "$BUILD_GRADLE"
             fi
             sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' "$BUILD_GRADLE"
+            sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' "$BUILD_GRADLE"
+            sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/g' "$BUILD_GRADLE"
+            
+            # تفعيل MultiDex داخل defaultConfig إذا لم يكن موجوداً
+            if ! grep -q "multiDexEnabled true" "$BUILD_GRADLE"; then
+              sed -i '/defaultConfig {/a \        multiDexEnabled true' "$BUILD_GRADLE"
+            fi
+          fi
+
+          # 5. إضافة اعتمادية androidx.multidex في dependencies إذا لزم الأمر
+          if [ -f "$BUILD_GRADLE" ]; then
+            if ! grep -q "multidex" "$BUILD_GRADLE"; then
+              echo "dependencies { implementation 'androidx.multidex:multidex:2.0.1' }" >> "$BUILD_GRADLE"
+            fi
           fi
 
       - name: Install Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK Successfully
+      - name: Build Debug APK with Expert Precision
         run: flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
