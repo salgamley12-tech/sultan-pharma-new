@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma Elite - Ultimate Master)
+name: Build Flutter APK (Sultan Pharma Elite - Ultimate Sovereign)
 
 on:
   push:
@@ -35,20 +35,18 @@ jobs:
           rm -rf android
           flutter create . --org com.sultanpharma --project-name sultan_pharma --platforms=android
 
-      - name: Inject Master JVM Optimizations & Force Gradle 8.4
+      - name: Inject Master SDK & Gradle Properties
         run: |
-          # 1. ضبط الذاكرة ومشاكل الـ Daemon والترميز لقطع دابر الانهيار الصامت
+          # 1. الربط المزدوج الحاسم: تعريف مسار فلاتر ومسار الـ Android SDK للـ Gradle لكي لا يتوقف أبداً
+          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
+          echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
+
+          # 2. تحسينات الذاكرة ومنع انهيار الـ Daemon
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
-          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
 
-          # 2. فرض استخدام إصدار Gradle 8.4 المتوافق جذرياً مع Java 17
-          if [ -f "android/gradle/wrapper/gradle-wrapper.properties" ]; then
-            sed -i 's|distributionUrl=.*|distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip|g' android/gradle/wrapper/gradle-wrapper.properties
-          fi
-
-          # 3. ضبط minSdkVersion إلى 21
+          # 3. ضبط minSdkVersion إلى 21 في ملف بناء الأندرويد
           if [ -f "android/app/build.gradle" ]; then
             sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
           fi
@@ -57,7 +55,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Debug APK Successfully
-        run: flutter build apk --debug --no-tree-shake-icons
+        run: flutter build apk --debug --no-tree-shake-icons --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
