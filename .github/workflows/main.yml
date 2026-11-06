@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Non-Daemon Sovereign Master)
+name: Build Flutter APK (Sultan Pharma - Ultimate Sovereign Masterpiece)
 
 on:
   push:
@@ -46,7 +46,7 @@ jobs:
 
           mkdir -p android/gradle/wrapper
 
-      - name: Ultimate Non-Daemon Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Java 17 & Namespace)
+      - name: Ultimate Universal Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Global Java 17 & Subproject Namespaces)
         run: |
           # 1. تثبيت Gradle 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
@@ -60,7 +60,7 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة وإيقاف الـ Daemon ومنع التوازي جذرياً لمنع انهيار العمال
+          # 3. إعدادات الذاكرة وإيقاف الـ Daemon ومنع التوازي جذرياً لمنع الانهيار
           echo "org.gradle.daemon=false" > android/gradle.properties
           echo "org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
@@ -68,7 +68,7 @@ jobs:
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 4. حقن التكوينات الجذرية مع المصحح الذكي للحزم الفرعية في android/build.gradle
+          # 4. حقن التكوينات الجذرية الشاملة في android/build.gradle لفرض Java 17 على كل الحزم الفرعية
           ROOT_GRADLE="android/build.gradle"
           cat << 'EOF' > "$ROOT_GRADLE"
           buildscript {
@@ -95,6 +95,7 @@ jobs:
               project.buildDir = "${rootProject.buildDir}/${project.name}"
           }
 
+          // توحيد بيئة الترجمة و Java 17 ومساحات التسمية لجميع الحزم الخارجية تلقائياً
           subprojects {
               afterEvaluate { project ->
                   if (project.hasProperty('android')) {
@@ -103,7 +104,19 @@ jobs:
                               def pkgName = "com.sultanpharma.plugin_" + project.name.replaceAll('-', '_').toLowerCase()
                               namespace pkgName
                           }
+                          compileOptions {
+                              sourceCompatibility JavaVersion.VERSION_17
+                              targetCompatibility JavaVersion.VERSION_17
+                          }
                       }
+                  }
+              }
+          }
+
+          subprojects {
+              tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+                  kotlinOptions {
+                      jvmTarget = '17'
                   }
               }
           }
@@ -113,7 +126,7 @@ jobs:
           }
           EOF
 
-          # 5. ضبط Namespace، SDK 34، تفعيل MultiDex وتوافق Java 17 في android/app/build.gradle
+          # 5. ضبط Namespace، SDK 34، تفعيل MultiDex وتوافق Java 17 في التطبيق الرئيسي android/app/build.gradle
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
             if ! grep -q "namespace" "$BUILD_GRADLE"; then
@@ -135,9 +148,9 @@ jobs:
       - name: Get Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Non-Daemon Sovereign Stability
+      - name: Build Debug APK with Universal Sovereign Stability
         run: |
-          # تشغيل البناء مع إيقاف الـ Daemon لمنع أي تعارض في العمال
+          # تنفيذ تجميع ديباج مع تفعيل إظهار الأخطاء بالكامل عند الضرورة
           flutter build apk --debug --no-tree-shake-icons --no-pub
 
       - name: Upload APK Artifact
