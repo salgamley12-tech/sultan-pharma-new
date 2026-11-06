@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Final Corrected Sovereign)
+name: Build Flutter APK (Sultan Pharma - Sovereign Complete Master)
 
 on:
   push:
@@ -30,19 +30,14 @@ jobs:
       - name: Accept Android SDK Licenses
         run: yes "y" | flutter doctor --android-licenses
 
-      - name: Safe Android Platform Generation
+      - name: Verify and Repair Project Structure
         run: |
-          PROJECT_NAME=$(grep '^name:' pubspec.yaml | awk '{print $2}' | tr -d '\r')
-          if [ -z "$PROJECT_NAME" ]; then
-            PROJECT_NAME="sultan_pharma"
-          fi
-          echo "Detected Project Name: $PROJECT_NAME"
-
-          if [ ! -d "android" ]; then
-            echo "Android directory missing. Generating platform safely..."
-            flutter create . --org com.sultanpharma --project-name $PROJECT_NAME --platforms=android
+          # التأكد من وجود ملفات المصدر الأساسية لفلاتر، وإذا كانت فارغة يتم توفير الهيكلية القياسية
+          if [ ! -f "lib/main.dart" ]; then
+            echo "Warning: lib/main.dart missing. Initializing standard structure..."
+            flutter create . --org com.sultanpharma --project-name sultan_pharma
           else
-            echo "Android directory already exists."
+            echo "Project source structure verified successfully."
           fi
 
       - name: Ultimate Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Namespace & MultiDex)
@@ -64,7 +59,7 @@ jobs:
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 4. حقق التكوينات الجذرية في android/build.gradle
+          # 4. حقن التكوينات الجذرية في android/build.gradle
           ROOT_GRADLE="android/build.gradle"
           if [ -f "$ROOT_GRADLE" ]; then
             cat << 'EOF' > "$ROOT_GRADLE"
@@ -129,10 +124,9 @@ jobs:
           flutter clean
           flutter pub get
 
-      - name: Build Debug APK with Verbose Diagnostics
+      - name: Build Debug APK Successfully
         run: |
-          # استخدام --verbose بدلاً من --info المتوافقة مع سطر أواصر فلاتر
-          flutter build apk --debug --no-tree-shake-icons --verbose
+          flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
