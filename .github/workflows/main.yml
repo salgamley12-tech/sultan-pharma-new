@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Ultimate Single-Worker Sovereign)
+name: Build Flutter APK (Sultan Pharma - Architectural Master Sovereign)
 
 on:
   push:
@@ -46,7 +46,7 @@ jobs:
 
           mkdir -p android/gradle/wrapper
 
-      - name: Ultimate Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Java 17 & Namespace)
+      - name: Architectural Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Java 17 & Namespace)
         run: |
           # 1. ترقية Gradle Wrapper إلى 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
@@ -60,7 +60,7 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة ومنع التوازي جذرياً
+          # 3. إعدادات الذاكرة وإيقاف التوازي لتفادي اصطدام العمال
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "org.gradle.workers.max=1" >> android/gradle.properties
@@ -129,16 +129,16 @@ jobs:
             fi
           fi
 
-      - name: Clean and Get Pub Dependencies
+      - name: Get Pub Dependencies Cleanly
         run: |
-          flutter pub get
+          flutter pub get --no-example
 
-      - name: Direct Sovereign Gradle Build with Single-Worker Lock
+      - name: Architectural Direct Gradle Build (AssembleDebug with Full Stacktrace)
         run: |
-          # تنفيذ التجميع المباشر مع فرض عامل واحد ومعاملات عدم التوازي لمنع أي انهيار
+          # تنفيذ تجميع مباشر مع تفعيل الـ Stacktrace الإجباري لكشف العلة بدقة هندسية مطلقة
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --no-parallel --max-workers=1 --stacktrace
+          ./gradlew clean assembleDebug --no-daemon --stacktrace --refresh-dependencies
 
       - name: Locate and Prepare APK Artifact
         run: |
