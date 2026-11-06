@@ -27,17 +27,20 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Initialize Flutter Android Structure
+      - name: Generate Android Folder Safely
         run: |
           if [ ! -d "android" ]; then
-            flutter create . --org com.sultanpharma --project-name sultan_pharma --platforms=android
+            echo "Creating temporary flutter project to extract android structure..."
+            flutter create temp_project --org com.sultanpharma --project-name sultan_pharma --platforms=android
+            cp -r temp_project/android ./android
+            rm -rf temp_project
           fi
 
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Verbose Logs
-        run: flutter build apk --debug --verbose
+      - name: Build Debug APK
+        run: flutter build apk --debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
