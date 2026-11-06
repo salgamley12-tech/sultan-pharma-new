@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Sovereign Pure Master)
+name: Build Flutter APK (Sultan Pharma - Autonomous Master)
 
 on:
   push:
@@ -30,12 +30,21 @@ jobs:
       - name: Accept Android SDK Licenses
         run: yes "y" | flutter doctor --android-licenses
 
-      - name: Ensure Android Directory Exists
+      - name: Generate Android Platform Safely
         run: |
-          # التأكد من وجود مجلد أندرويد بأسلوب آمن دون استدعاء أدوات الإنشاء المسببة للمشاكل
+          # استخراج اسم المشروع بدقة من pubspec.yaml لضمان التوافق المطلق
+          PROJECT_NAME=$(grep '^name:' pubspec.yaml | awk '{print $2}' | tr -d '\r')
+          if [ -z "$PROJECT_NAME" ]; then
+            PROJECT_NAME="sultan_pharma"
+          fi
+          echo "Detected Project Name: $PROJECT_NAME"
+
+          # توليد منصة الأندرويد تلقائياً وبأمان إذا كانت غير موجودة في المستودع
           if [ ! -d "android" ]; then
-            echo "Error: Android directory is missing. Please ensure basic project structure is committed."
-            exit 1
+            echo "Android directory missing. Generating platform safely..."
+            flutter create . --org com.sultanpharma --project-name $PROJECT_NAME --platforms=android
+          else
+            echo "Android directory already exists."
           fi
 
       - name: Inject Master SDK & Gradle Properties for Java 17
