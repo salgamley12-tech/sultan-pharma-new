@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Architectural Plugin Sovereign)
+name: Build Flutter APK (Sultan Pharma - Non-Daemon Sovereign Master)
 
 on:
   push:
@@ -46,9 +46,9 @@ jobs:
 
           mkdir -p android/gradle/wrapper
 
-      - name: Ultimate Architectural Hard-Patch (AGP 8.1.1, Dynamic Subproject Namespace & Java 17)
+      - name: Ultimate Non-Daemon Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Java 17 & Namespace)
         run: |
-          # 1. ترقية Gradle Wrapper إلى 8.4 المتوافق مع Java 17
+          # 1. تثبيت Gradle 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
           echo "distributionBase=GRADLE_USER_HOME" > "$GRADLE_PROP"
           echo "distributionPath=wrapper/dists" >> "$GRADLE_PROP"
@@ -60,8 +60,9 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة ومنع التوازي لتجنب تصادم عمال البناء
-          echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
+          # 3. إعدادات الذاكرة وإيقاف الـ Daemon ومنع التوازي جذرياً لمنع انهيار العمال
+          echo "org.gradle.daemon=false" > android/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "org.gradle.workers.max=1" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
@@ -94,7 +95,6 @@ jobs:
               project.buildDir = "${rootProject.buildDir}/${project.name}"
           }
 
-          // المصحح الذكي لإعطاء Namespace تلقائي لأي حزمة فرعية تعاني من نقص في AGP 8+
           subprojects {
               afterEvaluate { project ->
                   if (project.hasProperty('android')) {
@@ -135,18 +135,10 @@ jobs:
       - name: Get Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Full Stacktrace Protection
+      - name: Build Debug APK with Non-Daemon Sovereign Stability
         run: |
-          # تشغيل التجميع المباشر مع استخراج الـ Stacktrace تلقائياً عند أي عائق
-          cd android
-          chmod +x gradlew
-          ./gradlew clean assembleDebug --no-daemon --stacktrace || (echo "=== CAPTURING EXACT SUBPROJECT EXCEPTION ===" && ./gradlew assembleDebug --stacktrace --info && exit 1)
-
-      - name: Locate and Prepare APK Artifact
-        run: |
-          mkdir -p build/app/outputs/flutter-apk/
-          find . -name "app-debug.apk" -exec cp {} build/app/outputs/flutter-apk/app-debug.apk \;
-          ls -la build/app/outputs/flutter-apk/
+          # تشغيل البناء مع إيقاف الـ Daemon لمنع أي تعارض في العمال
+          flutter build apk --debug --no-tree-shake-icons --no-pub
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
