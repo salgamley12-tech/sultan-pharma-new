@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Dual Gradle Sovereign)
+name: Build Flutter APK (Sultan Pharma - Final Clean Sovereign)
 
 on:
   push:
@@ -57,14 +57,14 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة ومنع التوازي لتجنب انهيار عمال الـ Gradle
+          # 3. إعدادات الذاكرة ومنع التوازي
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "org.gradle.workers.max=1" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 4. ترقيع ملف الجذر android/build.gradle لضمان توافق المستودعات و AGP 8.1.0
+          # 4. ترقيع ملف الجذر android/build.gradle
           ROOT_GRADLE="android/build.gradle"
           if [ -f "$ROOT_GRADLE" ]; then
             cat << 'EOF' > "$ROOT_GRADLE"
@@ -97,7 +97,7 @@ jobs:
           EOF
           fi
 
-          # 5. ترقيع ملف التطبيق android/app/build.gradle (Namespace, SDK 34, MultiDex)
+          # 5. ترقيع ملف التطبيق android/app/build.gradle
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
             if ! grep -q "namespace" "$BUILD_GRADLE"; then
@@ -112,12 +112,14 @@ jobs:
             fi
           fi
 
-      - name: Install Pub Dependencies
-        run: flutter pub get
-
-      - name: Build Debug APK with Master Precision
+      - name: Clean and Get Pub Dependencies
         run: |
-          flutter build apk --debug --no-tree-shake-icons || (echo "=== BUILD FAILED, RUNNING FULL DIAGNOSTIC ===" && cd android && ./gradlew assembleDebug --no-daemon --stacktrace --info && exit 1)
+          flutter clean
+          flutter pub get
+
+      - name: Build Debug APK with Sovereign Clean State
+        run: |
+          flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -125,4 +127,3 @@ jobs:
           name: Sultan-Pharma-Debug-APK
           path: build/app/outputs/flutter-apk/app-debug.apk
           
-
