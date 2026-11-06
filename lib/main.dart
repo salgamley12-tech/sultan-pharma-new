@@ -31,8 +31,15 @@ class MainDashboardScreen extends StatefulWidget {
 class _MainDashboardScreenState extends State<MainDashboardScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeTabScreen(),
+  // دالة عامة لتمكين التنقل البرمجي بين الأقسام من أي مكان
+  void navigateToTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
+  late final List<Widget> _screens = [
+    HomeTabScreen(onNavigate: navigateToTab),
     const InventoryTabScreen(),
     const SalesTabScreen(),
     const ActivitiesTabScreen(),
@@ -47,11 +54,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+        onTap: navigateToTab,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home, size: 26), label: 'الرئيسية'),
           BottomNavigationBarItem(icon: Icon(Icons.medical_services, size: 26), label: 'المخزون'),
@@ -64,7 +67,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
 }
 
 class HomeTabScreen extends StatelessWidget {
-  const HomeTabScreen({super.key});
+  final Function(int) onNavigate;
+
+  const HomeTabScreen({super.key, required this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
@@ -93,67 +98,76 @@ class HomeTabScreen extends StatelessWidget {
                   Icon(Icons.check_circle, color: Colors.green),
                   SizedBox(width: 8),
                   Text(
-                    'الإصدار المحدث: v4.0 (مستودع نظيف)',
-                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 14),
+                    'الإصدار المحدث: v4.0 (مستودع نظيف نشط)',
+                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 12),
             Card(
-              elevation: 3,
+              elevation: 2,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: const Padding(
-                padding: EdgeInsets.all(14.0),
+                padding: EdgeInsets.all(12.0),
                 child: Row(
                   children: [
-                    Icon(Icons.verified_user, color: Colors.blue, size: 32),
-                    SizedBox(width: 14),
+                    Icon(Icons.verified_user, color: Colors.blue, size: 30),
+                    SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('المعرف الرئيسي للنظام', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                        Text('المعرف الرئيسي للنظام', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                         SizedBox(height: 2),
-                        Text('sal (نشط وموثق)', style: TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.bold)),
+                        Text('sal (نشط وموثق)', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 12),
             const Text(
               'أقسام نظام سلطان فارما:',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueGrey),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Expanded(
               child: ListView(
-                children: const [
+                children: [
+                  // بطاقة إدارة المخزون التفاعلية
                   Card(
+                    elevation: 2,
                     child: ListTile(
-                      leading: Icon(Icons.medical_services, color: Colors.green, size: 28),
-                      title: Text('إدارة المخزون والأدوية', style: TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('متابعة الأصناف والأرصدة'),
-                      trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                      leading: const Icon(Icons.medical_services, color: Colors.green, size: 28),
+                      title: const Text('إدارة المخزون والأدوية', style: TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: const Text('متابعة الأصناف والأرصدة'),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => onNavigate(1), // الانتقال لتبويب المخزون
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
+                  // بطاقة سجل الحسابات والمبيعات التفاعلية
                   Card(
+                    elevation: 2,
                     child: ListTile(
-                      leading: Icon(Icons.account_balance_wallet, color: Colors.orange, size: 28),
-                      title: Text('سجل الحسابات والمبيعات', style: TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('العمليات والفواتير المالية'),
-                      trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                      leading: const Icon(Icons.account_balance_wallet, color: Colors.orange, size: 28),
+                      title: const Text('سجل الحسابات والمبيعات', style: TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: const Text('العمليات والفواتير المالية'),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => onNavigate(2), // الانتقال لتبويب المبيعات
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
+                  // بطاقة تتبع الأنشطة الميدانية التفاعلية
                   Card(
+                    elevation: 2,
                     child: ListTile(
-                      leading: Icon(Icons.history, color: Colors.purple, size: 28),
-                      title: Text('تتبع الأنشطة الميدانية', style: TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('متابعة زيارات الصيدليات والمناديب'),
-                      trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                      leading: const Icon(Icons.history, color: Colors.purple, size: 28),
+                      title: const Text('تتبع الأنشطة الميدانية', style: TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: const Text('متابعة زيارات الصيدليات والمناديب'),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => onNavigate(3), // الانتقال لتبويب الأنشطة
                     ),
                   ),
                 ],
