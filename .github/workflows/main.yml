@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Mercury Sovereign Master)
+name: Build Flutter APK (Sultan Pharma - Diamond Sovereign)
 
 on:
   push:
@@ -32,32 +32,24 @@ jobs:
 
       - name: Mercury Shield - Safe Android Platform Initialization
         run: |
-          # التحقق الذكي: إنشاء منصة الأندرويد بأمان تام دون تدمير أو تصادم مع أدوات فلاتر
           if [ ! -d "android" ]; then
             echo "Initializing Android platform safely..."
             flutter create . --org com.sultanpharma --project-name sultan_pharma --platforms=android
           else
-            echo "Android platform already exists, skipping creation to prevent tool conflicts."
+            echo "Android platform already exists, skipping creation to preserve metadata."
           fi
 
       - name: Inject Master SDK & Gradle Properties
         run: |
-          # 1. التعديل الجذري لإصدار Gradle Wrapper إلى 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
           if [ -f "$GRADLE_PROP" ]; then
             sed -i 's|distributionUrl=.*|distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip|g' "$GRADLE_PROP"
           fi
-
-          # 2. الربط المزدوج الحاسم لـ مسار فلاتر ومسار الـ Android SDK للـ Gradle
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
-
-          # 3. تحسينات الذاكرة ومنع انهيار الـ JVM Daemon
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
-
-          # 4. ضبط الحد الأدنى للإصدار minSdkVersion إلى 21
           if [ -f "android/app/build.gradle" ]; then
             sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
           fi
@@ -65,8 +57,9 @@ jobs:
       - name: Install Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Mercury Precision
-        run: flutter build apk --debug --no-tree-shake-icons
+      - name: Build Debug APK with Smart Stacktrace Fallback
+        run: |
+          flutter build apk --debug --no-tree-shake-icons || (cd android && ./gradlew assembleDebug --stacktrace && exit 1)
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
