@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Ultimate Sovereign Overcome)
+name: Build Flutter APK (Sultan Pharma - Final Breakthrough Sovereign)
 
 on:
   push:
@@ -45,7 +45,7 @@ jobs:
             echo "Android directory already exists."
           fi
 
-      - name: Ultimate Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Namespace & SDK 34)
+      - name: Ultimate Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Namespace & MultiDex)
         run: |
           # 1. ترقية Gradle Wrapper إلى 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
@@ -57,14 +57,14 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة ومنع التوازي لتجنب تصادم العمال
+          # 3. إعدادات الذاكرة ومنع التوازي
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "org.gradle.workers.max=1" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 4. حقن التكوينات الجذرية في android/build.gradle لتوحيد AGP و Kotlin
+          # 4. حقن التكوينات الجذرية في android/build.gradle
           ROOT_GRADLE="android/build.gradle"
           if [ -f "$ROOT_GRADLE" ]; then
             cat << 'EOF' > "$ROOT_GRADLE"
@@ -109,7 +109,7 @@ jobs:
           EOF
           fi
 
-          # 5. ضبط Namespace, SDK 34, وتفعيل MultiDex في android/app/build.gradle
+          # 5. ضبط Namespace, SDK 34, وتفعيل MultiDex بصرامة في android/app/build.gradle
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
             if ! grep -q "namespace" "$BUILD_GRADLE"; then
@@ -129,9 +129,10 @@ jobs:
           flutter clean
           flutter pub get
 
-      - name: Build Debug APK with Absolute Precision
+      - name: Build Debug APK with Detailed Diagnostic Info
         run: |
-          flutter build apk --debug --no-tree-shake-icons
+          # تنفيذ البناء مع تفاصيل معلوماتية دقيقة لكشف أي عائق فوري
+          flutter build apk --debug --no-tree-shake-icons --info
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
