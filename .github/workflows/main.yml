@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Ultimate Sovereign Master)
+name: Build Flutter APK (Sultan Pharma - Reverse Engineering Master)
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
       - name: Accept Android SDK Licenses
         run: yes "y" | flutter doctor --android-licenses
 
-      - name: Generate Android Platform Safely
+      - name: Safe Android Platform Generation
         run: |
           PROJECT_NAME=$(grep '^name:' pubspec.yaml | awk '{print $2}' | tr -d '\r')
           if [ -z "$PROJECT_NAME" ]; then
@@ -45,24 +45,24 @@ jobs:
             echo "Android directory already exists."
           fi
 
-      - name: Expert Hard-Patch (Gradle 8.4, Namespace, MultiDex & SDK 34)
+      - name: Hard-Patch Gradle 8.4, Namespace, SDK & JVM Args
         run: |
-          # 1. ترقية Gradle Wrapper إلى الإصدار 8.4
+          # 1. ترقية Gradle Wrapper إلى 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
           if [ -f "$GRADLE_PROP" ]; then
             sed -i 's|distributionUrl=.*|distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip|g' "$GRADLE_PROP"
           fi
 
-          # 2. الربط المزدوج لـ مسار فلاتر ومسار الـ Android SDK
+          # 2. ربط مسارات الـ SDK والـ Flutter
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. تحسينات الذاكرة للـ JVM Daemon
+          # 3. تخصيص الذاكرة ومنع انهيار JVM
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 4. حقن الـ Namespace، رفع SDK إلى 34، وتفعيل MultiDex في android/app/build.gradle
+          # 4. حقن الـ Namespace ورفع النسخ إلى 34 لضمان توافقية الحزم
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
             if ! grep -q "namespace" "$BUILD_GRADLE"; then
@@ -71,25 +71,15 @@ jobs:
             sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' "$BUILD_GRADLE"
             sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' "$BUILD_GRADLE"
             sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/g' "$BUILD_GRADLE"
-            
-            # تفعيل MultiDex داخل defaultConfig إذا لم يكن موجوداً
-            if ! grep -q "multiDexEnabled true" "$BUILD_GRADLE"; then
-              sed -i '/defaultConfig {/a \        multiDexEnabled true' "$BUILD_GRADLE"
-            fi
-          fi
-
-          # 5. إضافة اعتمادية androidx.multidex في dependencies إذا لزم الأمر
-          if [ -f "$BUILD_GRADLE" ]; then
-            if ! grep -q "multidex" "$BUILD_GRADLE"; then
-              echo "dependencies { implementation 'androidx.multidex:multidex:2.0.1' }" >> "$BUILD_GRADLE"
-            fi
           fi
 
       - name: Install Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Expert Precision
-        run: flutter build apk --debug --no-tree-shake-icons
+      - name: Build Debug APK with Reverse Engineering Diagnostic Fallback
+        run: |
+          # محاولة بناء الـ APK عبر فلاتر، وإذا فشلت يتم استدعاء الـ Gradle مباشرة مع طباعة الـ Stacktrace كاملاً
+          flutter build apk --debug --no-tree-shake-icons || (echo "=== FLUTTER BUILD FAILED, RUNNING DIRECT GRADLE DIAGNOSTICS ===" && cd android && ./gradlew assembleDebug --stacktrace --info && exit 1)
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
