@@ -35,6 +35,13 @@ jobs:
           rm -rf android
           flutter create . --org com.sultanpharma --project-name sultan_pharma --platforms=android
 
+      - name: Force Gradle Wrapper Compatibility
+        run: |
+          cd android
+          gradle wrapper --gradle-version 8.5
+          chmod +x gradlew
+          cd ..
+
       - name: Configure Android Properties
         run: |
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
@@ -45,7 +52,7 @@ jobs:
       - name: Get Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK
+      - name: Build Debug APK Successfully
         run: flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
@@ -53,4 +60,5 @@ jobs:
         with:
           name: Sultan-Pharma-Debug-APK
           path: build/app/outputs/flutter-apk/app-debug.apk
+
           
