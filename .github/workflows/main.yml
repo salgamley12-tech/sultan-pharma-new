@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Diamond Sovereign)
+name: Build Flutter APK (Sultan Pharma - Diamond Master Fix)
 
 on:
   push:
@@ -39,17 +39,24 @@ jobs:
             echo "Android platform already exists, skipping creation to preserve metadata."
           fi
 
-      - name: Inject Master SDK & Gradle Properties
+      - name: Hard-patch Gradle, AGP, Kotlin & SDK Properties
         run: |
+          # 1. ترقية Gradle Wrapper إلى الإصدار 8.4
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
           if [ -f "$GRADLE_PROP" ]; then
             sed -i 's|distributionUrl=.*|distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip|g' "$GRADLE_PROP"
           fi
+
+          # 2. الربط المزدوج لـ مسار فلاتر و Android SDK
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
+
+          # 3. تحسينات الذاكرة ومنع انهيار JVM
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
+
+          # 4. ضبط minSdkVersion إلى 21
           if [ -f "android/app/build.gradle" ]; then
             sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
           fi
@@ -57,9 +64,8 @@ jobs:
       - name: Install Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Smart Stacktrace Fallback
-        run: |
-          flutter build apk --debug --no-tree-shake-icons || (cd android && ./gradlew assembleDebug --stacktrace && exit 1)
+      - name: Build Debug APK with Full Diagnostics
+        run: flutter build apk --debug --no-tree-shake-icons --verbose
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
