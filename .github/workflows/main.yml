@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Absolute Sovereign)
+name: Build Flutter APK (Sultan Pharma - Ultimate Diagnostic Master)
 
 on:
   push:
@@ -58,8 +58,8 @@ jobs:
       - name: Install Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK Successfully
-        run: flutter build apk --debug --no-tree-shake-icons
+      - name: Build Debug APK with Deep Gradle Diagnostics
+        run: flutter build apk --debug --no-tree-shake-icons -- --stacktrace --info
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
