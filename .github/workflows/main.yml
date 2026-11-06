@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Clean Sovereign Master)
+name: Build Flutter APK (Sultan Pharma - Architectural Plugin Sovereign)
 
 on:
   push:
@@ -46,9 +46,9 @@ jobs:
 
           mkdir -p android/gradle/wrapper
 
-      - name: Stable Sovereign Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Java 17 & Namespace)
+      - name: Ultimate Architectural Hard-Patch (AGP 8.1.1, Dynamic Subproject Namespace & Java 17)
         run: |
-          # 1. تثبيت Gradle 8.4 المتوافق مع Java 17
+          # 1. ترقية Gradle Wrapper إلى 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
           echo "distributionBase=GRADLE_USER_HOME" > "$GRADLE_PROP"
           echo "distributionPath=wrapper/dists" >> "$GRADLE_PROP"
@@ -60,14 +60,14 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة ومنع التوازي
+          # 3. إعدادات الذاكرة ومنع التوازي لتجنب تصادم عمال البناء
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "org.gradle.workers.max=1" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 4. ترقيع ملف الجذر android/build.gradle
+          # 4. حقن التكوينات الجذرية مع المصحح الذكي للحزم الفرعية في android/build.gradle
           ROOT_GRADLE="android/build.gradle"
           cat << 'EOF' > "$ROOT_GRADLE"
           buildscript {
@@ -93,12 +93,15 @@ jobs:
           subprojects {
               project.buildDir = "${rootProject.buildDir}/${project.name}"
           }
+
+          // المصحح الذكي لإعطاء Namespace تلقائي لأي حزمة فرعية تعاني من نقص في AGP 8+
           subprojects {
               afterEvaluate { project ->
                   if (project.hasProperty('android')) {
                       project.android {
                           if (namespace == null) {
-                              namespace project.group
+                              def pkgName = "com.sultanpharma.plugin_" + project.name.replaceAll('-', '_').toLowerCase()
+                              namespace pkgName
                           }
                       }
                   }
@@ -110,7 +113,7 @@ jobs:
           }
           EOF
 
-          # 5. ترقيع ملف التطبيق android/app/build.gradle بشكل سليم وآمن تماماً
+          # 5. ضبط Namespace، SDK 34، تفعيل MultiDex وتوافق Java 17 في android/app/build.gradle
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
             if ! grep -q "namespace" "$BUILD_GRADLE"; then
@@ -132,9 +135,18 @@ jobs:
       - name: Get Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK (Clean Sovereign Pipeline)
+      - name: Build Debug APK with Full Stacktrace Protection
         run: |
-          flutter build apk --debug --no-tree-shake-icons
+          # تشغيل التجميع المباشر مع استخراج الـ Stacktrace تلقائياً عند أي عائق
+          cd android
+          chmod +x gradlew
+          ./gradlew clean assembleDebug --no-daemon --stacktrace || (echo "=== CAPTURING EXACT SUBPROJECT EXCEPTION ===" && ./gradlew assembleDebug --stacktrace --info && exit 1)
+
+      - name: Locate and Prepare APK Artifact
+        run: |
+          mkdir -p build/app/outputs/flutter-apk/
+          find . -name "app-debug.apk" -exec cp {} build/app/outputs/flutter-apk/app-debug.apk \;
+          ls -la build/app/outputs/flutter-apk/
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
