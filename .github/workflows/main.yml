@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Commander Absolute Masterpiece)
+name: Build Flutter APK (Sultan Pharma - Golden Stable Masterpiece)
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Commander Protocol - SDK & Build-Tools Licensing
+      - name: Golden Protocol - SDK & Licenses
         run: |
           yes "y" | flutter doctor --android-licenses
           export ANDROID_HOME=$ANDROID_HOME
@@ -50,13 +50,13 @@ jobs:
 
           mkdir -p android/gradle/wrapper
 
-      - name: Commander Absolute Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Java 17 & Global Subprojects Enforcement)
+      - name: Golden Stable Hard-Patch (Gradle 7.5, AGP 7.4.2, Kotlin 1.9.22, Java 17)
         run: |
-          # 1. تثبيت Gradle 8.4 المتوافق مع Java 17
+          # 1. ضبط Gradle Wrapper إلى 7.5 الأكثر استقراراً مع الحزم القديمة
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
           echo "distributionBase=GRADLE_USER_HOME" > "$GRADLE_PROP"
           echo "distributionPath=wrapper/dists" >> "$GRADLE_PROP"
-          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip" >> "$GRADLE_PROP"
+          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip" >> "$GRADLE_PROP"
           echo "zipStoreBase=GRADLE_USER_HOME" >> "$GRADLE_PROP"
           echo "zipStorePath=wrapper/dists" >> "$GRADLE_PROP"
 
@@ -64,7 +64,7 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة وإيقاف الـ Daemon ومنع التوازي جذرياً لحماية الموارد
+          # 3. إعدادات الذاكرة وإيقاف الـ Daemon لحماية الـ Runner
           echo "org.gradle.daemon=false" > android/gradle.properties
           echo "org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
@@ -72,7 +72,7 @@ jobs:
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 4. حقن التكوينات الجذرية الشاملة وفرض SDK 34 و Java 17 على كافة الحزم بلا استثناء في android/build.gradle
+          # 4. حقن AGP 7.4.2 في android/build.gradle
           ROOT_GRADLE="android/build.gradle"
           cat << 'EOF' > "$ROOT_GRADLE"
           buildscript {
@@ -82,7 +82,7 @@ jobs:
                   mavenCentral()
               }
               dependencies {
-                  classpath 'com.android.tools.build:gradle:8.1.1'
+                  classpath 'com.android.tools.build:gradle:7.4.2'
                   classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
               }
           }
@@ -99,15 +99,10 @@ jobs:
               project.buildDir = "${rootProject.buildDir}/${project.name}"
           }
 
-          // فرض التوحيد الهندسي الكامل على كل الحزم الفرعية لتجنب أي تعارض في الـ Dexing
           subprojects {
               afterEvaluate { project ->
                   if (project.hasProperty('android')) {
                       project.android {
-                          if (namespace == null) {
-                              def pkgName = "com.sultanpharma.plugin_" + project.name.replaceAll('-', '_').toLowerCase()
-                              namespace pkgName
-                          }
                           compileSdkVersion 34
                           defaultConfig {
                               minSdkVersion 21
@@ -135,12 +130,9 @@ jobs:
           }
           EOF
 
-          # 5. ضبط الإعدادات في التطبيق الرئيسي android/app/build.gradle
+          # 5. ضبط التطبيق الرئيسي android/app/build.gradle
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
-            if ! grep -q "namespace" "$BUILD_GRADLE"; then
-              sed -i '/android {/a \    namespace "com.sultanpharma"' "$BUILD_GRADLE"
-            fi
             sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' "$BUILD_GRADLE"
             sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' "$BUILD_GRADLE"
             sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/g' "$BUILD_GRADLE"
@@ -157,7 +149,7 @@ jobs:
       - name: Get Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Absolute Commander Protection
+      - name: Build Debug APK with Golden Stability
         run: |
           flutter build apk --debug --no-tree-shake-icons --no-pub
 
