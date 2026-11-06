@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma Elite - Ultimate Sovereign)
+name: Build Flutter APK (Sultan Pharma Elite - Final Sovereign)
 
 on:
   push:
@@ -37,16 +37,16 @@ jobs:
 
       - name: Inject Master SDK & Gradle Properties
         run: |
-          # 1. الربط المزدوج الحاسم: تعريف مسار فلاتر ومسار الـ Android SDK للـ Gradle لكي لا يتوقف أبداً
+          # 1. الربط المزدوج الحاسم لـ Gradle و Flutter SDK
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 2. تحسينات الذاكرة ومنع انهيار الـ Daemon
+          # 2. تحسينات الذاكرة ومنع انهيار الـ JVM Daemon
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 3. ضبط minSdkVersion إلى 21 في ملف بناء الأندرويد
+          # 3. ضبط الحد الأدنى للإصدار minSdkVersion إلى 21
           if [ -f "android/app/build.gradle" ]; then
             sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
           fi
@@ -54,8 +54,8 @@ jobs:
       - name: Install Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK Successfully
-        run: flutter build apk --debug --no-tree-shake-icons --stacktrace
+      - name: Build Debug APK Cleanly
+        run: flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
