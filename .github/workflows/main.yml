@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Decisive Sovereign Master)
+name: Build Flutter APK (Sultan Pharma - Clean Sovereign Master)
 
 on:
   push:
@@ -46,7 +46,7 @@ jobs:
 
           mkdir -p android/gradle/wrapper
 
-      - name: Decisive Sovereign Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Java 17, MultiDex & Desugaring)
+      - name: Stable Sovereign Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Java 17 & Namespace)
         run: |
           # 1. تثبيت Gradle 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
@@ -60,7 +60,7 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة ومنع التوازي جذرياً
+          # 3. إعدادات الذاكرة ومنع التوازي
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "org.gradle.workers.max=1" >> android/gradle.properties
@@ -110,7 +110,7 @@ jobs:
           }
           EOF
 
-          # 5. ترقيع ملف التطبيق android/app/build.gradle مع تفعيل الـ Desugaring وحل كافة قيود الجافا
+          # 5. ترقيع ملف التطبيق android/app/build.gradle بشكل سليم وآمن تماماً
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
             if ! grep -q "namespace" "$BUILD_GRADLE"; then
@@ -124,36 +124,17 @@ jobs:
               sed -i '/defaultConfig {/a \        multiDexEnabled true' "$BUILD_GRADLE"
             fi
 
-            # تفعيل Core Library Desugaring لدعم Java 17 بسلام في الحزم القديمة
-            if ! grep -q "coreLibraryDesugaringEnabled" "$BUILD_GRADLE"; then
-              sed -i '/defaultConfig {/a \        coreLibraryDesugaringEnabled true' "$BUILD_GRADLE"
-            fi
-
             if ! grep -q "compileOptions" "$BUILD_GRADLE"; then
-              sed -i '/android {/a \    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17\n        coreLibraryDesugaringEnabled true\n    }\n\n    kotlinOptions {\n        jvmTarget = "17"\n    }' "$BUILD_GRADLE"
-            fi
-
-            # إضافة مكتبة الـ desugar_jdk_libs في الـ dependencies إذا لم تكن موجودة
-            if ! grep -q "desugar_jdk_libs" "$BUILD_GRADLE"; then
-              echo "dependencies { coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4' }" >> "$BUILD_GRADLE"
+              sed -i '/android {/a \    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17\n    }\n\n    kotlinOptions {\n        jvmTarget = "17"\n    }' "$BUILD_GRADLE"
             fi
           fi
 
       - name: Get Pub Dependencies
         run: flutter pub get
 
-      - name: Direct Decisive Gradle Build with Full Stacktrace Capture
+      - name: Build Debug APK (Clean Sovereign Pipeline)
         run: |
-          # تشغيل البناء المباشر عبر Gradle مع إظهار السجل بالكامل عند أي تعثر هندسي
-          cd android
-          chmod +x gradlew
-          ./gradlew clean assembleDebug --no-daemon --stacktrace || (echo "=== CAPTURING EXACT EXCEPTION ===" && ./gradlew assembleDebug --stacktrace --info && exit 1)
-
-      - name: Locate and Prepare APK Artifact
-        run: |
-          mkdir -p build/app/outputs/flutter-apk/
-          find . -name "app-debug.apk" -exec cp {} build/app/outputs/flutter-apk/app-debug.apk \;
-          ls -la build/app/outputs/flutter-apk/
+          flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
