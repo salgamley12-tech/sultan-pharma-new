@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Final Breakthrough Sovereign)
+name: Build Flutter APK (Sultan Pharma - Final Corrected Sovereign)
 
 on:
   push:
@@ -64,7 +64,7 @@ jobs:
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 4. حقن التكوينات الجذرية في android/build.gradle
+          # 4. حقق التكوينات الجذرية في android/build.gradle
           ROOT_GRADLE="android/build.gradle"
           if [ -f "$ROOT_GRADLE" ]; then
             cat << 'EOF' > "$ROOT_GRADLE"
@@ -109,7 +109,7 @@ jobs:
           EOF
           fi
 
-          # 5. ضبط Namespace, SDK 34, وتفعيل MultiDex بصرامة في android/app/build.gradle
+          # 5. ضبط Namespace, SDK 34, وتفعيل MultiDex في android/app/build.gradle
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
             if ! grep -q "namespace" "$BUILD_GRADLE"; then
@@ -129,10 +129,10 @@ jobs:
           flutter clean
           flutter pub get
 
-      - name: Build Debug APK with Detailed Diagnostic Info
+      - name: Build Debug APK with Verbose Diagnostics
         run: |
-          # تنفيذ البناء مع تفاصيل معلوماتية دقيقة لكشف أي عائق فوري
-          flutter build apk --debug --no-tree-shake-icons --info
+          # استخدام --verbose بدلاً من --info المتوافقة مع سطر أواصر فلاتر
+          flutter build apk --debug --no-tree-shake-icons --verbose
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
