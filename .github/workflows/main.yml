@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Final BuildTools Sovereign)
+name: Build Flutter APK (Sultan Pharma - Expert Council Master)
 
 on:
   push:
@@ -27,12 +27,14 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Accept Android SDK Licenses & Install Required Build-Tools
+      - name: Expert Council - Comprehensive SDK & Build-Tools Licensing
         run: |
+          # القبول الشامل للرخص وتثبيت الحزم المطلوبة بما فيها 30.0.3 بدقة هندسية مطلقة
           yes "y" | flutter doctor --android-licenses
-          # تثبيت إصدار الـ Build-Tools المطلوب وترخيصه بأسلوب آلي صارم
-          echo y | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "build-tools;30.0.3" "platforms;android-34" "build-tools;34.0.0" || true
-          yes "y" | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          export ANDROID_HOME=$ANDROID_HOME
+          echo "Installing and licensing required Android SDK tools..."
+          echo y | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "build-tools;30.0.3" "platforms;android-34" "build-tools;34.0.0"
+          yes "y" | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses
 
       - name: Initialize and Verify Android Platform Structure
         run: |
@@ -50,7 +52,7 @@ jobs:
 
           mkdir -p android/gradle/wrapper
 
-      - name: Ultimate Universal Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Global Java 17 & Subproject Namespaces)
+      - name: Expert Council - Global Hard-Patch (Gradle 8.4, AGP 8.1.1, Kotlin 1.9.22, Java 17 & Subproject Namespaces)
         run: |
           # 1. تثبيت Gradle 8.4 المتوافق مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
@@ -64,7 +66,7 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة وإيقاف الـ Daemon ومنع التوازي جذرياً لمنع الانهيار
+          # 3. إعدادات الذاكرة وإيقاف الـ Daemon لمنع الانهيار
           echo "org.gradle.daemon=false" > android/gradle.properties
           echo "org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
@@ -72,7 +74,7 @@ jobs:
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 4. حقن التكوينات الجذرية الشاملة في android/build.gradle لفرض Java 17 على كل الحزم الفرعية
+          # 4. حقن التكوينات الجذرية الشاملة لفرض Java 17 على كل الحزم الفرعية
           ROOT_GRADLE="android/build.gradle"
           cat << 'EOF' > "$ROOT_GRADLE"
           buildscript {
@@ -129,7 +131,7 @@ jobs:
           }
           EOF
 
-          # 5. ضبط Namespace، SDK 34، تفعيل MultiDex وتوافق Java 17 في التطبيق الرئيسي android/app/build.gradle
+          # 5. ضبط التكوينات في التطبيق الرئيسي android/app/build.gradle
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
             if ! grep -q "namespace" "$BUILD_GRADLE"; then
@@ -151,7 +153,7 @@ jobs:
       - name: Get Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Full Build-Tools Licensing
+      - name: Build Debug APK with Expert Council Verification
         run: |
           flutter build apk --debug --no-tree-shake-icons --no-pub
 
