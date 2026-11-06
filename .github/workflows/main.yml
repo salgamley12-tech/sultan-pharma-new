@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Diamond Master Fix)
+name: Build Flutter APK (Sultan Pharma - Sovereign Pure Master)
 
 on:
   push:
@@ -30,28 +30,27 @@ jobs:
       - name: Accept Android SDK Licenses
         run: yes "y" | flutter doctor --android-licenses
 
-      - name: Mercury Shield - Safe Android Platform Initialization
+      - name: Ensure Android Directory Exists
         run: |
+          # التأكد من وجود مجلد أندرويد بأسلوب آمن دون استدعاء أدوات الإنشاء المسببة للمشاكل
           if [ ! -d "android" ]; then
-            echo "Initializing Android platform safely..."
-            flutter create . --org com.sultanpharma --project-name sultan_pharma --platforms=android
-          else
-            echo "Android platform already exists, skipping creation to preserve metadata."
+            echo "Error: Android directory is missing. Please ensure basic project structure is committed."
+            exit 1
           fi
 
-      - name: Hard-patch Gradle, AGP, Kotlin & SDK Properties
+      - name: Inject Master SDK & Gradle Properties for Java 17
         run: |
-          # 1. ترقية Gradle Wrapper إلى الإصدار 8.4
+          # 1. ترقية Gradle Wrapper إلى الإصدار 8.4 المتوافق كلياً مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
           if [ -f "$GRADLE_PROP" ]; then
             sed -i 's|distributionUrl=.*|distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip|g' "$GRADLE_PROP"
           fi
 
-          # 2. الربط المزدوج لـ مسار فلاتر و Android SDK
+          # 2. الربط المزدوج لـ مسار فلاتر ومسار الـ Android SDK
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. تحسينات الذاكرة ومنع انهيار JVM
+          # 3. تحسينات الذاكرة للـ JVM Daemon
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
@@ -64,8 +63,8 @@ jobs:
       - name: Install Pub Dependencies
         run: flutter pub get
 
-      - name: Build Debug APK with Full Diagnostics
-        run: flutter build apk --debug --no-tree-shake-icons --verbose
+      - name: Build Debug APK Successfully
+        run: flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
