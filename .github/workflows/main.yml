@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Absolute Genius Sovereign)
+name: Build Flutter APK (Sultan Pharma - Ultimate Single-Worker Sovereign)
 
 on:
   push:
@@ -60,7 +60,7 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة ومنع التوازي
+          # 3. إعدادات الذاكرة ومنع التوازي جذرياً
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "org.gradle.workers.max=1" >> android/gradle.properties
@@ -133,16 +133,15 @@ jobs:
         run: |
           flutter pub get
 
-      - name: Direct Sovereign Gradle Build (AssembleDebug)
+      - name: Direct Sovereign Gradle Build with Single-Worker Lock
         run: |
-          # تنفيذ تجميع الـ Gradle المباشر لضمان السيطرة المطلقة على المخرجات
+          # تنفيذ التجميع المباشر مع فرض عامل واحد ومعاملات عدم التوازي لمنع أي انهيار
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon --no-parallel --max-workers=1 --stacktrace
 
       - name: Locate and Prepare APK Artifact
         run: |
-          # إنشاء مجلد مخرجات موحد ونسخ الـ APK الناتج إليه بدقة
           mkdir -p build/app/outputs/flutter-apk/
           find . -name "app-debug.apk" -exec cp {} build/app/outputs/flutter-apk/app-debug.apk \;
           ls -la build/app/outputs/flutter-apk/
