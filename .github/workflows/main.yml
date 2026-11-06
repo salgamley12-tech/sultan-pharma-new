@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Autonomous Master)
+name: Build Flutter APK (Sultan Pharma - Namespace Sovereign Master)
 
 on:
   push:
@@ -32,14 +32,12 @@ jobs:
 
       - name: Generate Android Platform Safely
         run: |
-          # استخراج اسم المشروع بدقة من pubspec.yaml لضمان التوافق المطلق
           PROJECT_NAME=$(grep '^name:' pubspec.yaml | awk '{print $2}' | tr -d '\r')
           if [ -z "$PROJECT_NAME" ]; then
             PROJECT_NAME="sultan_pharma"
           fi
           echo "Detected Project Name: $PROJECT_NAME"
 
-          # توليد منصة الأندرويد تلقائياً وبأمان إذا كانت غير موجودة في المستودع
           if [ ! -d "android" ]; then
             echo "Android directory missing. Generating platform safely..."
             flutter create . --org com.sultanpharma --project-name $PROJECT_NAME --platforms=android
@@ -47,7 +45,7 @@ jobs:
             echo "Android directory already exists."
           fi
 
-      - name: Inject Master SDK & Gradle Properties for Java 17
+      - name: Hard-patch Gradle, AGP, Namespace & SDK Properties
         run: |
           # 1. ترقية Gradle Wrapper إلى الإصدار 8.4 المتوافق كلياً مع Java 17
           GRADLE_PROP="android/gradle/wrapper/gradle-wrapper.properties"
@@ -64,9 +62,13 @@ jobs:
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
-          # 4. ضبط minSdkVersion إلى 21
-          if [ -f "android/app/build.gradle" ]; then
-            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
+          # 4. حقن الـ namespace وضبط minSdkVersion في android/app/build.gradle
+          BUILD_GRADLE="android/app/build.gradle"
+          if [ -f "$BUILD_GRADLE" ]; then
+            if ! grep -q "namespace" "$BUILD_GRADLE"; then
+              sed -i '/android {/a \    namespace "com.sultanpharma"' "$BUILD_GRADLE"
+            fi
+            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' "$BUILD_GRADLE"
           fi
 
       - name: Install Pub Dependencies
