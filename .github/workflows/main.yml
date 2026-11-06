@@ -1,4 +1,4 @@
-name: Build Flutter APK (Sultan Pharma - Comprehensive Master Sovereign)
+name: Build Flutter APK (Sultan Pharma - Absolute Genius Sovereign)
 
 on:
   push:
@@ -60,7 +60,7 @@ jobs:
           echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
 
-          # 3. إعدادات الذاكرة ومنع التوازي لتجنب انهيار العمال
+          # 3. إعدادات الذاكرة ومنع التوازي
           echo "org.gradle.jvmargs=-Xmx4G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "org.gradle.workers.max=1" >> android/gradle.properties
@@ -131,13 +131,21 @@ jobs:
 
       - name: Clean and Get Pub Dependencies
         run: |
-          flutter clean
           flutter pub get
 
-      - name: Build Debug APK with Sovereign Stacktrace Diagnostic
+      - name: Direct Sovereign Gradle Build (AssembleDebug)
         run: |
-          # محاولة البناء مع تتبع دقيق للـ Stacktrace لضمان كشف أو تجاوز أي عائق نهائي
-          flutter build apk --debug --no-tree-shake-icons || (echo "=== CAPTURING FINAL GRADLE EXCEPTION ===" && cd android && ./gradlew assembleDebug --no-daemon --stacktrace && exit 1)
+          # تنفيذ تجميع الـ Gradle المباشر لضمان السيطرة المطلقة على المخرجات
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Locate and Prepare APK Artifact
+        run: |
+          # إنشاء مجلد مخرجات موحد ونسخ الـ APK الناتج إليه بدقة
+          mkdir -p build/app/outputs/flutter-apk/
+          find . -name "app-debug.apk" -exec cp {} build/app/outputs/flutter-apk/app-debug.apk \;
+          ls -la build/app/outputs/flutter-apk/
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
